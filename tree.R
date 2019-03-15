@@ -5,7 +5,7 @@
 #library(tidyverse)
 library(seqinr) # necessary to read alignments
 library(ggtree)
-
+library(openxlsx)
 # session options
 options(width = 220)
 
@@ -112,7 +112,7 @@ df_arch %>%
 
 
 # read the alignment
-aln = read.alignment('Archaea_Eukarya_short.aln', "fasta", forceToLower = TRUE)
+aln = read.alignment('Archaea_Eukarya_names_short.aln', "fasta", forceToLower = TRUE)
 
 # load trees
 tree = read.tree('AE.treefile')
@@ -122,9 +122,18 @@ for (i in 1:length(aln$nam)){ mut = c(mut, substr(aln$seq[[i]][1], 543,543)) }
 # creates a dataframe with names and mutation
 df = data.frame(aln$nam, mut)
 
-df %>% group_by(mut) %>% summarise(Count = n())
+mutations = df %>% group_by(mut) %>% summarise(Count = n())
+deletion = df %>% filter(mut == '-') %>% select(aln.nam)
+a_mut = df %>% filter(mut == 'a') %>% select(aln.nam)
+e_mut = df %>% filter(mut == 'e') %>% select(aln.nam)
+k_mut = df %>% filter(mut == 'k') %>% select(aln.nam)
+r_mut = df %>% filter(mut == 'r') %>% select(aln.nam)
+t_mut = df %>% filter(mut == 't') %>% select(aln.nam)
 
-df %>% filter(mut == 'r')
+l = list('Mutations' = mutations, 'Deletions' = deletion, 'A mutation' = a_mut, 'E mutation' = e_mut, 'K mutation' = k_mut, 'R mutation' = r_mut, 'T mutation' = t_mut)
+
+write.xlsx(l, 'summary.xlsx', colNames = T, rowNames = F)
+
 
 
 # split names into two different groups 
