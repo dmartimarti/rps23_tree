@@ -10,13 +10,13 @@ library(ggtree)
 options(width = 220)
 
 # read the alignment
-aln = read.alignment('alignment_mafft.aln', "fasta", forceToLower = TRUE)
+aln = read.alignment('Archaea_Eukarya_short.aln', "fasta", forceToLower = TRUE)
 aln2 = read.alignment('alignment_mafft_full.aln', "fasta", forceToLower = TRUE)
 aln$nam[7] = 'Caenorhabditis_elegans'
 aln2$nam[6] = 'Caenorhabditis_elegans'
 
 # load trees
-tree = read.tree('rsp23_newick_tree.tre')
+tree = read.tree('AE.treefile')
 tree2 = read.tree('rsp23_newick_tree_full.tre')
 
 ### tree 1: the short tree
@@ -106,10 +106,37 @@ df_arch %>%
 
 
 
+##########################################
+### analysis of Eukaryotes and Archaea ###
+##########################################
 
 
+# read the alignment
+aln = read.alignment('Archaea_Eukarya_short.aln', "fasta", forceToLower = TRUE)
+
+# load trees
+tree = read.tree('AE.treefile')
+
+mut = c()
+for (i in 1:length(aln$nam)){ mut = c(mut, substr(aln$seq[[i]][1], 543,543)) }
+# creates a dataframe with names and mutation
+df = data.frame(aln$nam, mut)
+
+df %>% group_by(mut) %>% summarise(Count = n())
+
+df %>% filter(mut == 'r')
 
 
+# split names into two different groups 
+groupInfo = split(df$aln.nam, df$mut)
+
+# generate a tree
+tree1 = groupOTU(tree, groupInfo)
+ggtree(tree1, aes(color = group), layout = 'circular', branch.length = "none") + 
+	geom_tiplab(size = 0.5, aes(angle = angle)) + 
+	theme(legend.position = c(0.54,0.455))
+
+ggsave(file = 'summary_tree.pdf', width = 120, height = 120, units = 'mm', scale = 2, device = 'pdf')
 
 
 
