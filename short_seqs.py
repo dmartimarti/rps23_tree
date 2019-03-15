@@ -3,7 +3,7 @@
 python code to retrieve the species code from a list 
 of InterPro entries
 
-Daniel Martinez, May - 2019
+Daniel Martinez, March - 2019
 '''
 
 from Bio import SeqIO
@@ -14,20 +14,75 @@ from time import sleep
 import re
 import subprocess
 from termcolor import colored
+from optparse import OptionParser
 
-# input and output
-inFile = sys.argv[1]
-outFile = sys.argv[2]
+
+
+# Release information
+__version__ = '0.2'
+_scriptname = 'short_seqs'
+_verdata = 'Mar 2019'
+_devflag = True
+
+
+
+# Option parser
+
+parser = OptionParser()
+parser.add_option("-i", "--input", 
+					dest = "inputfile", 
+					metavar = "INPUT",
+                  	help = "input file in fasta format")
+parser.add_option("-o", "--output", 
+					dest = "outputfile",  
+					metavar = "OUTPUT", 
+                  	help = "output file in fasta format")
+parser.add_option("-s", "--size", 
+					dest = "size", 
+					metavar = "OUTPUT", 
+					type = "int",
+                  	help = "max size of sequences after filtering",
+                  	default = 200)
+parser.add_option("-n", "--names" ,
+					action = "store_true", 
+					dest = "species", 
+					help = "activate this option if you want to retrieve species name from InterPro. It takes a while!",
+					default = False)
+parser.add_option("-a", "--aln" ,
+					action = "store_true", 
+					dest = "aln", 
+					help = "activate this option if you want to automatically align your seqs with mafft (auto mode)",
+					default = False)
+
+(options, args) = parser.parse_args()
+
+
+
+
+# Program Header
+print('\n====================================================\n')
+print(_scriptname + 'script, v' + __version__ , _verdata + 
+	'\n =-= by Daniel Martinez =-=')
+if(_devflag):
+    print('\nWARNING! THIS IS JUST A DEVELOPMENT SUBRELEASE.' +
+          '\nUSE IT AT YOUR OWN RISK!\n')
+print('\n====================================================\n')
+
+
+# # input and output
+# inFile = sys.argv[1]
+# outFile = sys.argv[2]
+# get_names = sys.argv[3]
 
 # read fasta file
-records = list(SeqIO.parse(inFile, "fasta"))
+records = list(SeqIO.parse(options.inputfile, "fasta"))
 
 ### functions
 # filter by length 
 def len_filt(seqs):
 	empty_list = []
 	for seq in seqs:
-		if len(seq) < 200:
+		if len(seq) < options.size:
 			empty_list.append(seq)
 	return empty_list
 
@@ -38,6 +93,7 @@ def read_ids(seqs):
 		ids.append(seq.id)
 	return ids
 
+# progress bar
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█'):
     """
     Call in a loop to create terminal progress bar
@@ -79,7 +135,7 @@ def id_change(seqs, ids):
 		seqs[i].name = ''
 		seqs[i].description = ''
 
-print("Filtering sequences shorter than 200 \n")
+print("Filtering sequences shorter than " + str(options.size) + " \n")
 short_sequences = len_filt(records)
 
 # number of sequences filtered
@@ -89,27 +145,26 @@ print("Original number of sequences: " + str(len(records)))
 print("Final number of sequences: " + str(len(short_sequences)))
 print(str(filtered) + "%" + " of sequences filtered \n")
 
-# extracting species and ids
-seq_id = read_ids(short_sequences)
-print("Getting species names from InterPro website, it may take a while\n")
-species = retrieve_html(read_ids(short_sequences))
-
-
-# filtering bad characters in species
-for i in range(len(species)):
-	species[i] = re.sub('[/\:(){}<>\'.\[\]-]', '', species[i])
-
-if (len(seq_id) == len(species)) == True:
-	pass
+if (options.species):
+	# extracting species and ids
+	seq_id = read_ids(short_sequences)
+	print("Getting species names from InterPro website, it may take a while\n")
+	species = retrieve_html(read_ids(short_sequences))
+	# filtering bad characters in species
+	for i in range(len(species)):
+		species[i] = re.sub('[/\:(){}#<>\'.\[\]-]', '', species[i])
+		species[i] = species[i].replace('=','')
+	if (len(seq_id) == len(species)) == True:
+		pass
+	else:
+		print("vectors are not the same!")
+	new_id = []
+	for i in range(len(species)):
+		temp = species[i] + "_" + seq_id[i] 
+		new_id.append(temp)
+	id_change(short_sequences, new_id)
 else:
-	print("vectors are not the same!")
-
-new_id = []
-for i in range(len(species)):
-	temp = species[i] + "_" + seq_id[i] 
-	new_id.append(temp)
-
-id_change(short_sequences, new_id)
+	pass
 
 
 # last check
@@ -119,10 +174,10 @@ if check == True:
 else:
 	print("\nYou may have repeated ids, be careful!\n")
 
-SeqIO.write(short_sequences, outFile, "fasta")
-
-mafft_order = 'mafft --auto ' + str(outFile) + ' > ' + outFile.split('.')[0] + '.aln' 
+SeqIO.write(short_sequences, options.outputfile, "fasta")
 
 
-print(colored('Launching mafft!\n', 'green'))
-subprocess.run(mafft_order, shell = True)
+if (options.aln):
+	mafft_order = 'mafft --auto ' + str(options.outputfile) + ' > ' + options.outputfile.split('.')[0] + '.aln' 
+	print(colored('Launching mafft!\n', 'green'))
+	subprocess.run(mafft_order, shell = True)
