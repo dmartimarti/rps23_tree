@@ -43,10 +43,15 @@ df = data.frame(aln$nam, mut)
 # split names into two different groups 
 groupInfo = split(df$aln.nam, df$mut)
 
+
+
 # generate a tree
+print('Drawing tree...')
 tree1 = groupOTU(tree, groupInfo)
 ggtree(tree1, aes(color = group), layout = 'circular', branch.length = "none") + 
-	geom_tiplab(size = 2.5, aes(angle = angle)) + 
+	geom_tiplab(size = 1, aes(angle = angle)) + 
 	theme(legend.position = c(0.54,0.455))
 
 ggsave(file = 'summary_tree.pdf', width = 120, height = 120, units = 'mm', scale = 2, device = 'pdf')
+
+print('Process completed!')
