@@ -154,6 +154,7 @@ if (options.species):
 	for i in range(len(species)):
 		species[i] = re.sub('[/\:(){}#<>\'.\[\]-]', '', species[i])
 		species[i] = species[i].replace('=','')
+		species[i] = species[i].replace('#','')
 	if (len(seq_id) == len(species)) == True:
 		pass
 	else:
