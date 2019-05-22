@@ -3,7 +3,7 @@
 python code to retrieve the species code from a list 
 of InterPro entries
 
-Daniel Martinez, May - 2019
+Daniel Martinez, March - 2019
 '''
 
 from Bio import SeqIO

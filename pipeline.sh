@@ -7,6 +7,8 @@ iqtree -s Archaea_Eukarya.aln -st AA -nt 6 -m LG+R8 -n 0 -pre AE
 python ../../scripts/pat_find.py Archaea_Eukarya.aln
 Rscript ../../scripts/drawtree.R -a Archaea_Eukarya.aln -t AE.treefile -p 543 
 
+
+
 # for subtrees
 
 
@@ -17,3 +19,19 @@ python ../../scripts/pat_find.py Archaea_Eukarya_names_short_subset.aln
 
 iqtree -s Archaea_Eukarya_names_short_subset.aln -st AA -nt 6 -m LG+R8 -n 0 -pre subAE
 Rscript ../../scripts/drawtree.R -a Archaea_Eukarya_names_short_subset.aln -t subAE.treefile -p 327 
+
+
+# rooted tree
+
+mafft --auto Archaea_Eukarya_names_short_subset.fasta > Archaea_Eukarya_names_short_subset.aln
+python ../../scripts/pat_find.py Archaea_Eukarya_names_short_subset.aln
+
+iqtree -s Archaea_Eukarya_names_short_subset.aln -st AA -nt 6 -m LG+R8 -n 0 -o Escherichia_coli_M056_A0A1X3I107
+Rscript ../../scripts/drawtree.R -a Archaea_Eukarya_names_short_subset.aln -t subAE.treefile -p 280
+
+
+
+# for the paper, this is the version 
+iqtree -s all_seqs.aln -st AA -nt 6 -o Escherichia_coli_M056_A0A1X3I107
+
+model = LG+G4
